@@ -1,0 +1,65 @@
+version: "3.5"
+
+services:
+
+##47201 - api
+  api:
+    image: dotnetmonitortest/api
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    container_name: dotnetmonitoretestapi
+    ports:
+      - '47201:5000'
+    networks:
+      - monitor
+    restart: 
+      on-failure
+    volumes:
+      - monitor-volume:/tmp
+
+##47202 - monitor
+  monitor:
+    image: mcr.microsoft.com/dotnet/monitor:6
+    container_name: dotnetmonitor
+    command:
+      - "--no-auth"
+    ports:
+      - '47202:52325'
+    networks:
+      - monitor
+    restart: 
+      on-failure
+    volumes:
+      - monitor-volume:/tmp
+
+##47203 - prometheus
+  prometheus:
+    image: ubuntu/prometheus
+    container_name: dotnetmonitorprometheus
+    ports:
+      - '47203:9090'
+    networks:
+      - monitor
+    restart: 
+      on-failure
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+##47204 - grafana
+  grafana:
+    image: grafana/grafana
+    container_name: dotnetmonitorgrafana
+    ports:
+      - '47204:3000'
+    networks:
+      - monitor
+    restart: 
+      on-failure
+
+networks:
+  monitor:
+    name: monitor-network
+
+volumes:
+    monitor-volume:
